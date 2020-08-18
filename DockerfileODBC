@@ -44,6 +44,6 @@ RUN & c:\windows\system32\inetsrv\appcmd.exe `
 RUN Add-OdbcDsn -Name "mywebsite" `
                 -DriverName "\"ODBC Driver 13 For SQL Server\"" `
                 -DsnType "System" ` 
-                -SetPropertyValue @("\"Server=XXXX.us-east-2.rds.amazonaws.com\"", "\"Trusted_Connection=No\"");
+                -SetPropertyValue @("\"Server=XXXX.amazonaws.com\"", "\"Trusted_Connection=No\"");
 
 ADD .\src c:\mywebsite
