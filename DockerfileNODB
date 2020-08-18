@@ -1,0 +1,41 @@
+# escape=`
+
+FROM microsoft/iis
+SHELL ["powershell", "-command"]
+
+RUN Install-WindowsFeature Web-ASP; `
+    Install-WindowsFeature Web-CGI; `
+    Install-WindowsFeature Web-ISAPI-Ext; `
+    Install-WindowsFeature Web-ISAPI-Filter; `
+    Install-WindowsFeature Web-Includes; `
+    Install-WindowsFeature Web-HTTP-Errors; `
+    Install-WindowsFeature Web-Common-HTTP; `
+    Install-WindowsFeature Web-Performance; `
+    Install-WindowsFeature WAS; `
+    Import-module IISAdministration;
+
+RUN md c:/msi;
+
+RUN Invoke-WebRequest 'http://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi' -OutFile c:/msi/urlrewrite2.msi; `
+    Start-Process 'c:/msi/urlrewrite2.msi' '/qn' -PassThru | Wait-Process;
+
+EXPOSE 8000
+RUN Remove-Website -Name 'Default Web Site'; `
+    md c:\mywebsite; `
+    New-IISSite -Name "mywebsite" `
+                -PhysicalPath 'c:\mywebsite' `
+                -BindingInformation "*:8000:";
+
+RUN & c:\windows\system32\inetsrv\appcmd.exe `
+    unlock config `
+    /section:system.webServer/asp
+
+RUN & c:\windows\system32\inetsrv\appcmd.exe `
+      unlock config `
+      /section:system.webServer/handlers
+
+RUN & c:\windows\system32\inetsrv\appcmd.exe `
+      unlock config `
+      /section:system.webServer/modules
+
+ADD . c:\mywebsite
